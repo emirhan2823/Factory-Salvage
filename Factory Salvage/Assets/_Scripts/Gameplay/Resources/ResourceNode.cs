@@ -57,6 +57,7 @@ namespace FactorySalvage.Gameplay
 
             inventory.AddResource(_resourceType, _amountPerGather);
             _gathersRemaining--;
+            Debug.Log($"[ResourceNode] Collected {_amountPerGather}x {_resourceType.ResourceName}. Total: {inventory.GetAmount(_resourceType)}. Gathers left: {_gathersRemaining}");
 
             UpdateVisual();
 
