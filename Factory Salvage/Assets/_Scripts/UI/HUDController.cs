@@ -109,14 +109,19 @@ namespace FactorySalvage.UI
             if (_resourceText == null || _playerInventory == null) return;
 
             _sb.Clear();
-            if (_displayResources != null)
+
+            // Get all resources directly from inventory
+            var allResources = _playerInventory.GetAllResources();
+            if (allResources.Count > 0)
             {
-                foreach (var res in _displayResources)
+                foreach (var kvp in allResources)
                 {
-                    if (res == null) continue;
-                    int amount = _playerInventory.GetAmount(res);
-                    _sb.Append(res.ResourceName).Append(": ").Append(amount).Append("  ");
+                    _sb.Append(kvp.Key.ResourceName).Append(": ").Append(kvp.Value).Append("  ");
                 }
+            }
+            else
+            {
+                _sb.Append("No resources yet — tap scrap piles to collect!");
             }
 
             _resourceText.SetText(_sb);
