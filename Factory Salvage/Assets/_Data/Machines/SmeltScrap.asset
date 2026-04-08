@@ -1,0 +1,22 @@
+%YAML 1.1
+%TAG !u! tag:unity3d.com,2011:
+--- !u!114 &11400000
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 0}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 33500a083f76b6143bde0ac153a37850, type: 3}
+  m_Name: SmeltScrap
+  m_EditorClassIdentifier: FactorySalvage::FactorySalvage.Data.RecipeDefinition
+  _recipeName: Smelt Scrap
+  _inputs:
+  - Resource: {fileID: 11400000, guid: 871872e7b5e485f40a7cc9b172fc4eb6, type: 2}
+    Amount: 2
+  _outputs:
+  - Resource: {fileID: 11400000, guid: b3821edf84e37d74598d22c1515f3564, type: 2}
+    Amount: 1
+  _processTime: 3

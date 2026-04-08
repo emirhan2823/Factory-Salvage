@@ -1,4 +1,5 @@
 using UnityEngine;
+using UnityEngine.InputSystem;
 
 namespace FactorySalvage.Gameplay
 {
@@ -71,27 +72,25 @@ namespace FactorySalvage.Gameplay
 
         private void HandleZoom()
         {
-            // Mobile pinch-to-zoom
-            if (Input.touchCount == 2)
+            // Desktop scroll wheel (New Input System)
+            if (Mouse.current != null)
             {
-                var touch0 = Input.GetTouch(0);
-                var touch1 = Input.GetTouch(1);
-
-                var prevMagnitude = (touch0.position - touch0.deltaPosition -
-                                     (touch1.position - touch1.deltaPosition)).magnitude;
-                var currentMagnitude = (touch0.position - touch1.position).magnitude;
-
-                var diff = prevMagnitude - currentMagnitude;
-                _targetZoom += diff * 0.01f * _zoomSpeed;
-            }
-            // Desktop scroll wheel
-            else
-            {
-                var scroll = Input.mouseScrollDelta.y;
+                var scroll = Mouse.current.scroll.ReadValue().y;
                 if (Mathf.Abs(scroll) > 0.01f)
                 {
-                    _targetZoom -= scroll * _zoomSpeed;
+                    _targetZoom -= scroll * 0.01f * _zoomSpeed;
                 }
+            }
+
+            // Mobile pinch-to-zoom
+            if (Touchscreen.current != null && UnityEngine.InputSystem.EnhancedTouch.Touch.activeTouches.Count == 2)
+            {
+                var touches = UnityEngine.InputSystem.EnhancedTouch.Touch.activeTouches;
+                var prevMagnitude = ((touches[0].screenPosition - touches[0].delta) -
+                                     (touches[1].screenPosition - touches[1].delta)).magnitude;
+                var currentMagnitude = (touches[0].screenPosition - touches[1].screenPosition).magnitude;
+                var diff = prevMagnitude - currentMagnitude;
+                _targetZoom += diff * 0.01f * _zoomSpeed;
             }
 
             _targetZoom = Mathf.Clamp(_targetZoom, _minZoom, _maxZoom);

@@ -1,0 +1,20 @@
+{
+    "name": "FactorySalvage.Editor",
+    "rootNamespace": "FactorySalvage.Editor",
+    "references": [
+        "FactorySalvage",
+        "Unity.InputSystem",
+        "Unity.TextMeshPro"
+    ],
+    "includePlatforms": [
+        "Editor"
+    ],
+    "excludePlatforms": [],
+    "allowUnsafeCode": false,
+    "overrideReferences": false,
+    "precompiledReferences": [],
+    "autoReferenced": true,
+    "defineConstraints": [],
+    "versionDefines": [],
+    "noEngineReferences": false
+}

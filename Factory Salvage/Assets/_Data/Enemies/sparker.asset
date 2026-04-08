@@ -1,0 +1,25 @@
+%YAML 1.1
+%TAG !u! tag:unity3d.com,2011:
+--- !u!114 &11400000
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 0}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 5f1eb4ceba165054e823374e83f28da2, type: 3}
+  m_Name: sparker
+  m_EditorClassIdentifier: FactorySalvage::FactorySalvage.Data.EnemyDefinition
+  _enemyName: Sparker
+  _prefab: {fileID: 0}
+  _health: 8
+  _moveSpeed: 3.5
+  _attackDamage: 3
+  _attackRate: 1.5
+  _attackRange: 1
+  _lootTable:
+  - Resource: {fileID: 11400000, guid: 871872e7b5e485f40a7cc9b172fc4eb6, type: 2}
+    Amount: 1
+    DropChance: 0.5
