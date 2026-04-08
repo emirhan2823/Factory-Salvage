@@ -14,6 +14,9 @@ namespace FactorySalvage.Gameplay
         [Header("Processing")]
         [SerializeField] private RecipeDefinition _recipe;
 
+        [Header("Energy")]
+        [SerializeField] private EnergyConsumer _energyConsumer;
+
         private readonly Dictionary<ResourceDefinition, int> _inputBuffer = new();
         private readonly Dictionary<ResourceDefinition, int> _outputBuffer = new();
         private float _processTimer;
@@ -35,6 +38,9 @@ namespace FactorySalvage.Gameplay
         private void Update()
         {
             if (!IsPlaced) return;
+
+            // No power = no processing
+            if (_energyConsumer != null && !_energyConsumer.HasPower) return;
 
             if (_isProcessing)
             {
