@@ -68,6 +68,52 @@ namespace FactorySalvage.Editor
             Debug.Log("[Setup] === FULL SETUP COMPLETE ===");
         }
 
+        [MenuItem("FactorySalvage/Fix HUD")]
+        public static void FixHUD()
+        {
+            // Find HUD panel in Canvas
+            var canvas = Object.FindAnyObjectByType<Canvas>();
+            if (canvas == null)
+            {
+                Debug.LogError("[Fix] No Canvas found! Run Setup first.");
+                return;
+            }
+
+            // Find or create HUD panel
+            var hudTransform = canvas.transform.Find("HUD");
+            if (hudTransform == null)
+            {
+                Debug.LogError("[Fix] No HUD panel found in Canvas!");
+                return;
+            }
+
+            // Add HUDController if missing
+            var hudController = hudTransform.GetComponent<FactorySalvage.UI.HUDController>();
+            if (hudController == null)
+            {
+                hudController = hudTransform.gameObject.AddComponent<FactorySalvage.UI.HUDController>();
+                Debug.Log("[Fix] Added HUDController to HUD panel");
+            }
+
+            // Find ResourceText
+            var resourceText = hudTransform.Find("ResourceText");
+            if (resourceText != null)
+            {
+                var tmp = resourceText.GetComponent<TMPro.TextMeshProUGUI>();
+                if (tmp != null)
+                {
+                    SetPrivateField(hudController, "_resourceText", tmp);
+                    Debug.Log("[Fix] Wired ResourceText to HUDController");
+                }
+            }
+
+            EditorUtility.SetDirty(hudTransform.gameObject);
+            UnityEditor.SceneManagement.EditorSceneManager.MarkSceneDirty(
+                UnityEditor.SceneManagement.EditorSceneManager.GetActiveScene());
+
+            Debug.Log("[Fix] HUD fix complete! Save scene (Ctrl+S) and Press Play.");
+        }
+
         #endregion
 
         #region Resource Assets
@@ -798,15 +844,17 @@ namespace FactorySalvage.Editor
 
             // HUD (always visible)
             var hudGo = CreateUIPanel(canvasGo.transform, "HUD", true);
-            var hudText = CreateUIText(hudGo.transform, "ResourceText", "Scrap: 0  Wire: 0  Circuit: 0  Gear: 0",
+            var hudController = hudGo.AddComponent<FactorySalvage.UI.HUDController>();
+            var hudText = CreateUIText(hudGo.transform, "ResourceText", "Loading...",
                 new Vector2(0.5f, 1f), new Vector2(0.5f, 1f), new Vector2(0f, -40f));
+            SetPrivateField(hudController, "_resourceText", hudText);
 
             // Bottom buttons
             CreateUIButton(hudGo.transform, "BuildBtn", "Build [B]", new Vector2(0.1f, 0f), new Vector2(0.1f, 0f), new Vector2(0f, 60f));
             CreateUIButton(hudGo.transform, "WaveBtn", "Wave [W]", new Vector2(0.3f, 0f), new Vector2(0.3f, 0f), new Vector2(0f, 60f));
             CreateUIButton(hudGo.transform, "UpgradeBtn", "Upgrade [U]", new Vector2(0.5f, 0f), new Vector2(0.5f, 0f), new Vector2(0f, 60f));
 
-            Debug.Log("[Setup] UI Canvas created with HUD");
+            Debug.Log("[Setup] UI Canvas created with HUD + HUDController");
         }
 
         #endregion
