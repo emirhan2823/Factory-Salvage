@@ -9,7 +9,7 @@ namespace FactorySalvage.UI
 {
     /// <summary>
     /// Displays resource counts, energy bar, wave counter, base health.
-    /// Event-driven — no polling in Update.
+    /// Auto-finds references if not set in Inspector.
     /// </summary>
     public class HUDController : MonoBehaviour
     {
@@ -39,18 +39,17 @@ namespace FactorySalvage.UI
 
         // Cached StringBuilder to avoid GC
         private readonly System.Text.StringBuilder _sb = new(128);
+        private float _refreshTimer;
 
         #endregion
 
         #region Unity Callbacks
 
-        private void OnEnable()
+        private void Start()
         {
+            AutoFindReferences();
+
             if (_onInventoryChanged != null) _onInventoryChanged.Register(UpdateResourceDisplay);
-            if (_currentEnergy != null) _currentEnergy.OnValueChanged += UpdateEnergyDisplay;
-            if (_currentWave != null) _currentWave.OnValueChanged += UpdateWaveDisplay;
-            if (_enemiesRemaining != null) _enemiesRemaining.OnValueChanged += UpdateEnemiesDisplay;
-            if (_baseHealth != null) _baseHealth.OnDamaged += OnBaseHealthChanged;
 
             RefreshAll();
         }
@@ -58,70 +57,69 @@ namespace FactorySalvage.UI
         private void OnDisable()
         {
             if (_onInventoryChanged != null) _onInventoryChanged.Unregister(UpdateResourceDisplay);
-            if (_currentEnergy != null) _currentEnergy.OnValueChanged -= UpdateEnergyDisplay;
-            if (_currentWave != null) _currentWave.OnValueChanged -= UpdateWaveDisplay;
-            if (_enemiesRemaining != null) _enemiesRemaining.OnValueChanged -= UpdateEnemiesDisplay;
-            if (_baseHealth != null) _baseHealth.OnDamaged -= OnBaseHealthChanged;
+        }
+
+        private void Update()
+        {
+            // Fallback: refresh every 0.5s in case events aren't wired
+            _refreshTimer -= Time.deltaTime;
+            if (_refreshTimer <= 0f)
+            {
+                _refreshTimer = 0.5f;
+                UpdateResourceDisplay();
+            }
         }
 
         #endregion
 
         #region Private Methods
 
+        private void AutoFindReferences()
+        {
+            // Auto-find inventory
+            if (_playerInventory == null)
+            {
+                var player = FindAnyObjectByType<PlayerController>();
+                if (player != null)
+                {
+                    _playerInventory = player.GetComponent<Inventory>();
+                }
+            }
+
+            // Auto-find resource text
+            if (_resourceText == null)
+            {
+                _resourceText = GetComponentInChildren<TextMeshProUGUI>();
+            }
+
+            // Auto-find resource definitions
+            if (_displayResources == null || _displayResources.Length == 0)
+            {
+                _displayResources = UnityEngine.Resources.FindObjectsOfTypeAll<ResourceDefinition>();
+            }
+        }
+
         private void RefreshAll()
         {
             UpdateResourceDisplay();
-            UpdateEnergyDisplay(_currentEnergy != null ? _currentEnergy.Value : 0f);
-            UpdateWaveDisplay(_currentWave != null ? _currentWave.Value : 0);
-            UpdateBaseHealthDisplay();
         }
 
         private void UpdateResourceDisplay()
         {
-            if (_resourceText == null || _playerInventory == null || _displayResources == null) return;
+            if (_resourceText == null || _playerInventory == null) return;
 
             _sb.Clear();
-            foreach (var res in _displayResources)
+            if (_displayResources != null)
             {
-                if (res == null) continue;
-                int amount = _playerInventory.GetAmount(res);
-                _sb.Append(res.ResourceName).Append(": ").Append(amount).Append("  ");
+                foreach (var res in _displayResources)
+                {
+                    if (res == null) continue;
+                    int amount = _playerInventory.GetAmount(res);
+                    _sb.Append(res.ResourceName).Append(": ").Append(amount).Append("  ");
+                }
             }
 
             _resourceText.SetText(_sb);
-        }
-
-        private void UpdateEnergyDisplay(float value)
-        {
-            if (_energySlider == null) return;
-            float max = _maxEnergy != null ? _maxEnergy.Value : 1f;
-            _energySlider.maxValue = max;
-            _energySlider.value = Mathf.Max(0f, value);
-        }
-
-        private void UpdateWaveDisplay(int wave)
-        {
-            if (_waveText == null) return;
-            _sb.Clear();
-            _sb.Append("Wave ").Append(wave);
-            _waveText.SetText(_sb);
-        }
-
-        private void UpdateEnemiesDisplay(int count)
-        {
-            // Could update a separate enemies remaining text
-        }
-
-        private void OnBaseHealthChanged(float damage)
-        {
-            UpdateBaseHealthDisplay();
-        }
-
-        private void UpdateBaseHealthDisplay()
-        {
-            if (_baseHealthSlider == null || _baseHealth == null) return;
-            _baseHealthSlider.maxValue = _baseHealth.MaxHealth;
-            _baseHealthSlider.value = _baseHealth.CurrentHealth;
         }
 
         #endregion
