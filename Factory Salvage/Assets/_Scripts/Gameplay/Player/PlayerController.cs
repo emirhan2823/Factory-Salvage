@@ -97,6 +97,13 @@ namespace FactorySalvage.Gameplay
                 var worldPos = _mainCamera.ScreenToWorldPoint(screenPos);
                 worldPos.z = 0f;
 
+                // Don't move if tapping on an interactable (let PlayerInteraction handle it)
+                var hitCollider = Physics2D.OverlapPoint(worldPos);
+                if (hitCollider != null && hitCollider.GetComponent<IInteractable>() != null)
+                {
+                    return; // PlayerInteraction will handle this
+                }
+
                 // Check if target cell is walkable
                 if (_gridManager != null)
                 {
