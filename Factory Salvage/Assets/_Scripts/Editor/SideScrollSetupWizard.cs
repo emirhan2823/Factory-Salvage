@@ -243,6 +243,7 @@ namespace FactorySalvage.Editor
             infoPanel.SetActive(false);
 
             Debug.Log("[Setup] Canvas and UI created (with build menu + building info)");
+        }
 
         private static void CreateBuildingSlots()
         {
