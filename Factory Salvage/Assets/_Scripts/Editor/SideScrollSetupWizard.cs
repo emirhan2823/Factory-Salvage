@@ -194,8 +194,54 @@ namespace FactorySalvage.Editor
             CreateWorldLabel("VillageLabel", "KOY", 6f, Color.cyan);
             CreateWorldLabel("DefenseLabel", "SAVUNMA", 16f, Color.red);
 
-            Debug.Log("[Setup] Canvas and UI created");
-        }
+            // Build Menu Panel (popup)
+            var buildMenuPanel = CreateUIPanel(canvasGo.transform, "BuildMenuPanel", 0.15f, 0.2f, 0.85f, 0.8f,
+                new Color(0.1f, 0.1f, 0.15f, 0.95f));
+            var buildMenuTitle = CreatePanelText(buildMenuPanel.transform, "Title", "Build", 24, TextAlignmentOptions.Center,
+                new Vector2(0f, 1f), new Vector2(1f, 1f), new Vector2(0f, -20f), new Vector2(0f, 40f));
+            var buildButtonContainer = new GameObject("ButtonContainer", typeof(RectTransform),
+                typeof(VerticalLayoutGroup), typeof(ContentSizeFitter));
+            buildButtonContainer.transform.SetParent(buildMenuPanel.transform, false);
+            var vlg = buildButtonContainer.GetComponent<VerticalLayoutGroup>();
+            vlg.spacing = 8f;
+            vlg.padding = new RectOffset(10, 10, 50, 10);
+            vlg.childAlignment = TextAnchor.UpperCenter;
+            vlg.childControlHeight = false;
+            vlg.childControlWidth = false;
+            vlg.childForceExpandHeight = false;
+            vlg.childForceExpandWidth = false;
+            var csf = buildButtonContainer.GetComponent<ContentSizeFitter>();
+            csf.verticalFit = ContentSizeFitter.FitMode.PreferredSize;
+            var bcRect = buildButtonContainer.GetComponent<RectTransform>();
+            bcRect.anchorMin = Vector2.zero;
+            bcRect.anchorMax = Vector2.one;
+            bcRect.sizeDelta = Vector2.zero;
+
+            var buildMenuUI = buildMenuPanel.AddComponent<FactorySalvage.UI.BuildMenuUI>();
+            SetField(buildMenuUI, "_panel", buildMenuPanel);
+            SetField(buildMenuUI, "_buttonContainer", buildButtonContainer.transform);
+            SetField(buildMenuUI, "_titleText", buildMenuTitle);
+            buildMenuPanel.SetActive(false);
+
+            // Building Info Panel (popup)
+            var infoPanel = CreateUIPanel(canvasGo.transform, "BuildingInfoPanel", 0.1f, 0.3f, 0.9f, 0.7f,
+                new Color(0.1f, 0.12f, 0.18f, 0.95f));
+            var infoText = CreatePanelText(infoPanel.transform, "InfoText", "", 18, TextAlignmentOptions.TopLeft,
+                new Vector2(0f, 0.3f), new Vector2(1f, 1f), new Vector2(15f, -10f), new Vector2(-30f, -20f));
+            var upgradeBtn = CreatePanelButton(infoPanel.transform, "UpgradeBtn", "UPGRADE",
+                new Vector2(0.2f, 0.05f), new Vector2(0.5f, 0.2f), new Color(0.1f, 0.5f, 0.1f));
+            var closeInfoBtn = CreatePanelButton(infoPanel.transform, "CloseInfoBtn", "Close",
+                new Vector2(0.55f, 0.05f), new Vector2(0.8f, 0.2f), new Color(0.5f, 0.1f, 0.1f));
+
+            var infoUI = infoPanel.AddComponent<FactorySalvage.UI.BuildingInfoUI>();
+            SetField(infoUI, "_panel", infoPanel);
+            SetField(infoUI, "_infoText", infoText);
+            SetField(infoUI, "_upgradeButton", upgradeBtn.GetComponent<Button>());
+            SetField(infoUI, "_upgradeButtonText", upgradeBtn.GetComponentInChildren<TextMeshProUGUI>());
+            closeInfoBtn.GetComponent<Button>().onClick.AddListener(() => infoPanel.SetActive(false));
+            infoPanel.SetActive(false);
+
+            Debug.Log("[Setup] Canvas and UI created (with build menu + building info)");
 
         private static void CreateBuildingSlots()
         {
@@ -539,6 +585,70 @@ namespace FactorySalvage.Editor
             tmp.alignment = TextAlignmentOptions.Center;
             tmp.color = color;
             tmp.sortingOrder = 20;
+        }
+
+        private static GameObject CreateUIPanel(Transform parent, string name,
+            float anchorMinX, float anchorMinY, float anchorMaxX, float anchorMaxY, Color bgColor)
+        {
+            var go = new GameObject(name, typeof(RectTransform));
+            go.transform.SetParent(parent, false);
+            var rect = go.GetComponent<RectTransform>();
+            rect.anchorMin = new Vector2(anchorMinX, anchorMinY);
+            rect.anchorMax = new Vector2(anchorMaxX, anchorMaxY);
+            rect.sizeDelta = Vector2.zero;
+            rect.offsetMin = Vector2.zero;
+            rect.offsetMax = Vector2.zero;
+            var img = go.AddComponent<Image>();
+            img.color = bgColor;
+            return go;
+        }
+
+        private static TextMeshProUGUI CreatePanelText(Transform parent, string name, string text,
+            int fontSize, TextAlignmentOptions alignment, Vector2 anchorMin, Vector2 anchorMax,
+            Vector2 offsetMin, Vector2 sizeDelta)
+        {
+            var go = new GameObject(name, typeof(RectTransform));
+            go.transform.SetParent(parent, false);
+            var rect = go.GetComponent<RectTransform>();
+            rect.anchorMin = anchorMin;
+            rect.anchorMax = anchorMax;
+            rect.anchoredPosition = offsetMin;
+            rect.sizeDelta = sizeDelta;
+            var tmp = go.AddComponent<TextMeshProUGUI>();
+            tmp.text = text;
+            tmp.fontSize = fontSize;
+            tmp.alignment = alignment;
+            tmp.color = Color.white;
+            return tmp;
+        }
+
+        private static GameObject CreatePanelButton(Transform parent, string name, string text,
+            Vector2 anchorMin, Vector2 anchorMax, Color bgColor)
+        {
+            var go = new GameObject(name, typeof(RectTransform));
+            go.transform.SetParent(parent, false);
+            var rect = go.GetComponent<RectTransform>();
+            rect.anchorMin = anchorMin;
+            rect.anchorMax = anchorMax;
+            rect.sizeDelta = Vector2.zero;
+            rect.offsetMin = Vector2.zero;
+            rect.offsetMax = Vector2.zero;
+            var img = go.AddComponent<Image>();
+            img.color = bgColor;
+            go.AddComponent<Button>();
+
+            var textGo = new GameObject("Text", typeof(RectTransform));
+            textGo.transform.SetParent(go.transform, false);
+            var textRect = textGo.GetComponent<RectTransform>();
+            textRect.anchorMin = Vector2.zero;
+            textRect.anchorMax = Vector2.one;
+            textRect.sizeDelta = Vector2.zero;
+            var tmp = textGo.AddComponent<TextMeshProUGUI>();
+            tmp.text = text;
+            tmp.fontSize = 18;
+            tmp.alignment = TextAlignmentOptions.Center;
+            tmp.color = Color.white;
+            return go;
         }
 
         private static Sprite CreateColorSprite(string name, Color color, int w, int h)

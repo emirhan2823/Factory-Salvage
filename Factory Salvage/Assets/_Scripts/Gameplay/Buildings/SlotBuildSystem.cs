@@ -153,19 +153,21 @@ namespace FactorySalvage.Gameplay
             var slot = hit.GetComponent<BuildingSlot>();
             if (slot != null && !slot.IsOccupied)
             {
+                // Open build menu if available, otherwise auto-build
+                if (Core.ServiceLocator.TryGet<UI.BuildMenuUI>(out var buildMenu))
+                {
+                    buildMenu.Show(slot);
+                    return;
+                }
+
+                // Fallback: auto-build first affordable building
                 if (_availableBuildings == null || _availableBuildings.Length == 0) return;
-
-                // Defense slots get tower buildings, village slots get resource/crafting
                 bool isDefenseSlot = slot.Zone == ZoneType.Defense;
-
                 foreach (var building in _availableBuildings)
                 {
                     if (building == null) continue;
-
-                    // Match building category to slot zone
                     bool isDefenseBuilding = building.Category == Data.BuildingCategory.Defense;
                     if (isDefenseSlot != isDefenseBuilding) continue;
-
                     if (_inventory == null || _inventory.HasEnoughResources(building.BuildCost))
                     {
                         TryBuild(building, slot);
@@ -176,18 +178,22 @@ namespace FactorySalvage.Gameplay
                 return;
             }
 
-            // Check if tapped on a building (for info/upgrade)
+            // Check if tapped on a building — show info popup
             var buildingBase = hit.GetComponentInParent<BuildingBase>();
             if (buildingBase != null)
             {
-                if (buildingBase.CanLevelUp(_inventory))
+                if (Core.ServiceLocator.TryGet<UI.BuildingInfoUI>(out var infoUI))
                 {
-                    buildingBase.LevelUp(_inventory);
-                    Debug.Log($"[Upgrade] {buildingBase.Definition.BuildingName} → Level {buildingBase.Level}!");
+                    infoUI.Show(buildingBase);
                 }
                 else
                 {
-                    Debug.Log($"[Info] {buildingBase.Definition.BuildingName} Lv.{buildingBase.Level} — not enough resources to upgrade");
+                    // Fallback: direct upgrade
+                    if (buildingBase.CanLevelUp(_inventory))
+                    {
+                        buildingBase.LevelUp(_inventory);
+                        Debug.Log($"[Upgrade] {buildingBase.Definition.BuildingName} -> Lv.{buildingBase.Level}");
+                    }
                 }
             }
         }
