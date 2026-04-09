@@ -109,12 +109,16 @@ namespace FactorySalvage.Gameplay
                 }
             }
 
+            // Animations
+            var animator = buildingGo.AddComponent<SpriteAnimator>();
+            animator.SetAnimation(SpriteAnimator.AnimationType.IdleBounce, 1f, 0.03f);
+            animator.PlaySpawnPop();
+
             // Place in slot
             buildingBase.Place(slot);
 
             _onBuildingPlaced?.Raise();
-
-            Debug.Log($"[Build] Placed {definition.BuildingName} at slot {slot.SlotIndex}");
+            Core.SimpleParticleSystem.Emit(slot.Position, Core.SimpleParticleSystem.ParticlePreset.LevelUp, 8);
             return true;
         }
 

@@ -54,6 +54,11 @@ namespace FactorySalvage.Gameplay
             if (health != null)
             {
                 health.TakeDamage(_damage);
+                Core.SimpleParticleSystem.Emit(transform.position,
+                    Core.SimpleParticleSystem.ParticlePreset.ProjectileHit, 4);
+
+                var animator = other.GetComponent<SpriteAnimator>();
+                if (animator != null) animator.PlayHitFlash();
             }
 
             Destroy(gameObject);

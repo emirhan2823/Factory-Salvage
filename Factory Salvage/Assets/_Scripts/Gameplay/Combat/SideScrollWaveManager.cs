@@ -147,6 +147,10 @@ namespace FactorySalvage.Gameplay
             var health = enemyGo.AddComponent<Health>();
             health.Initialize(enemyDef.Health * healthMult);
 
+            // Walk animation
+            var animator = enemyGo.AddComponent<SpriteAnimator>();
+            animator.SetAnimation(SpriteAnimator.AnimationType.WalkBob, 1f, 0.08f);
+
             // Enemy controller
             var enemy = enemyGo.AddComponent<SideScrollEnemy>();
             var srField = typeof(SideScrollEnemy).GetField("_spriteRenderer",

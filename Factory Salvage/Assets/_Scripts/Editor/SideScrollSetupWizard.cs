@@ -153,7 +153,11 @@ namespace FactorySalvage.Editor
             var envGo = new GameObject("Environment");
             envGo.AddComponent<EnvironmentRenderer>();
 
-            Debug.Log("[Setup] Player base + environment created");
+            // Particle system
+            var particleGo = new GameObject("ParticleSystem");
+            particleGo.AddComponent<FactorySalvage.Core.SimpleParticleSystem>();
+
+            Debug.Log("[Setup] Player base + environment + particles created");
         }
 
         private static void CreateCanvas()

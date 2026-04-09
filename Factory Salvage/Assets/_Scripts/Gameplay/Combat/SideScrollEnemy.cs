@@ -138,15 +138,23 @@ namespace FactorySalvage.Gameplay
         private void OnDied(Health health)
         {
             DropLoot();
+            Core.SimpleParticleSystem.Emit(transform.position,
+                Core.SimpleParticleSystem.ParticlePreset.EnemyDeath, 10);
 
-            var pooled = GetComponent<PooledObject>();
-            if (pooled != null)
+            var animator = GetComponent<SpriteAnimator>();
+            if (animator != null)
             {
-                pooled.ReturnToPool();
+                animator.PlayDeathShrink(() => {
+                    var pooled = GetComponent<PooledObject>();
+                    if (pooled != null) pooled.ReturnToPool();
+                    else gameObject.SetActive(false);
+                });
             }
             else
             {
-                gameObject.SetActive(false);
+                var pooled = GetComponent<PooledObject>();
+                if (pooled != null) pooled.ReturnToPool();
+                else gameObject.SetActive(false);
             }
         }
 

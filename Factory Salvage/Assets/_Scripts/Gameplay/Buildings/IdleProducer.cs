@@ -82,7 +82,8 @@ namespace FactorySalvage.Gameplay
             {
                 int amount = Mathf.Max(1, Mathf.FloorToInt(output.Amount * multiplier));
                 _inventory.AddResource(output.Resource, amount);
-                Debug.Log($"[Idle] {_building.Definition.BuildingName} produced {amount}x {output.Resource.ResourceName}. Total: {_inventory.GetAmount(output.Resource)}");
+                Core.SimpleParticleSystem.Emit(transform.position + Vector3.up * 0.5f,
+                    Core.SimpleParticleSystem.ParticlePreset.BuildingProduction, 3);
             }
         }
 
