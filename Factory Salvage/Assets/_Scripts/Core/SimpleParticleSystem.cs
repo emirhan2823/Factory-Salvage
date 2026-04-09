@@ -37,6 +37,8 @@ namespace FactorySalvage.Core
 
         private void Update()
         {
+            if (_particles == null || _renderers == null) return;
+
             for (int i = 0; i < _poolSize; i++)
             {
                 ref var p = ref _particles[i];
@@ -97,6 +99,8 @@ namespace FactorySalvage.Core
 
         private void EmitInternal(Vector3 position, ParticlePreset preset, int count)
         {
+            if (_particles == null || _renderers == null) return;
+
             for (int i = 0; i < count; i++)
             {
                 int idx = FindInactive();
