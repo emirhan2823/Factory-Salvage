@@ -412,7 +412,85 @@ namespace FactorySalvage.Editor
                 }
             }
 
-            Debug.Log("[Setup] Managers created (Inventory, Audio, Save, SlotManager, BuildSystem)");
+            // Enemy definitions
+            CreateEnemySOs();
+
+            // WaveManager
+            var waveMgrGo = new GameObject("WaveManager");
+            waveMgrGo.transform.SetParent(managersGo.transform);
+            var waveMgr = waveMgrGo.AddComponent<SideScrollWaveManager>();
+
+            var baseTarget = Object.FindAnyObjectByType<FactorySalvage.Gameplay.Health>();
+            if (baseTarget != null) SetField(waveMgr, "_baseTarget", baseTarget.transform);
+
+            var enemySet = AssetDatabase.LoadAssetAtPath<TransformRuntimeSet>("Assets/_Data/Variables/EnemySet.asset");
+            if (enemySet == null)
+            {
+                GameSetupWizard_EnsureDirectory("Assets/_Data/Variables");
+                enemySet = ScriptableObject.CreateInstance<TransformRuntimeSet>();
+                AssetDatabase.CreateAsset(enemySet, "Assets/_Data/Variables/EnemySet.asset");
+            }
+            SetField(waveMgr, "_enemySet", enemySet);
+
+            var scrapper = AssetDatabase.LoadAssetAtPath<FactorySalvage.Data.EnemyDefinition>("Assets/_Data/Enemies/Scrapper.asset");
+            var sparker = AssetDatabase.LoadAssetAtPath<FactorySalvage.Data.EnemyDefinition>("Assets/_Data/Enemies/Sparker.asset");
+            SetField(waveMgr, "_baseEnemy", scrapper);
+            SetField(waveMgr, "_fastEnemy", sparker);
+
+            // Wire Start Wave button
+            var startWaveBtn = GameObject.Find("WaveBtn");
+            if (startWaveBtn != null)
+            {
+                var btn = startWaveBtn.GetComponent<UnityEngine.UI.Button>();
+                if (btn != null)
+                {
+                    UnityEditor.Events.UnityEventTools.AddVoidPersistentListener(
+                        btn.onClick,
+                        new UnityEngine.Events.UnityAction(waveMgr.StartNextWave));
+                }
+            }
+
+            Debug.Log("[Setup] Managers created (Inventory, Audio, Save, SlotManager, BuildSystem, WaveManager)");
+        }
+
+        private static void CreateEnemySOs()
+        {
+            GameSetupWizard_EnsureDirectory("Assets/_Data/Enemies");
+
+            var wood = AssetDatabase.LoadAssetAtPath<FactorySalvage.Data.ResourceDefinition>("Assets/_Data/Resources/Wood.asset");
+
+            // Scrapper - slow, tanky
+            var scrapperPath = "Assets/_Data/Enemies/Scrapper.asset";
+            if (AssetDatabase.LoadAssetAtPath<FactorySalvage.Data.EnemyDefinition>(scrapperPath) == null)
+            {
+                var scrapper = ScriptableObject.CreateInstance<FactorySalvage.Data.EnemyDefinition>();
+                SetField(scrapper, "_enemyName", "Scrapper");
+                SetField(scrapper, "_health", 20f);
+                SetField(scrapper, "_moveSpeed", 1.5f);
+                SetField(scrapper, "_attackDamage", 5f);
+                SetField(scrapper, "_attackRate", 1f);
+                SetField(scrapper, "_attackRange", 1.5f);
+                if (wood != null)
+                    SetField(scrapper, "_lootTable", new FactorySalvage.Data.LootEntry[]
+                        { new() { Resource = wood, Amount = 3, DropChance = 0.8f } });
+                AssetDatabase.CreateAsset(scrapper, scrapperPath);
+            }
+
+            // Sparker - fast, weak
+            var sparkerPath = "Assets/_Data/Enemies/Sparker.asset";
+            if (AssetDatabase.LoadAssetAtPath<FactorySalvage.Data.EnemyDefinition>(sparkerPath) == null)
+            {
+                var sparker = ScriptableObject.CreateInstance<FactorySalvage.Data.EnemyDefinition>();
+                SetField(sparker, "_enemyName", "Sparker");
+                SetField(sparker, "_health", 10f);
+                SetField(sparker, "_moveSpeed", 3f);
+                SetField(sparker, "_attackDamage", 3f);
+                SetField(sparker, "_attackRate", 2f);
+                SetField(sparker, "_attackRange", 1f);
+                AssetDatabase.CreateAsset(sparker, sparkerPath);
+            }
+
+            AssetDatabase.SaveAssets();
         }
 
         #region Helpers
