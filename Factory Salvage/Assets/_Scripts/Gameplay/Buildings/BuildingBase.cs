@@ -103,11 +103,11 @@ namespace FactorySalvage.Gameplay
 
         private void UpdateVisual()
         {
-            if (_spriteRenderer == null) return;
-            if (_definition != null)
-            {
-                _spriteRenderer.color = _definition.Color;
-            }
+            if (_spriteRenderer == null || _definition == null) return;
+
+            // Regenerate sprite with SpriteFactory for proper shape
+            _spriteRenderer.sprite = Core.SpriteFactory.CreateBuilding(
+                _definition.Category, _definition.Color, _level);
         }
 
         #endregion
