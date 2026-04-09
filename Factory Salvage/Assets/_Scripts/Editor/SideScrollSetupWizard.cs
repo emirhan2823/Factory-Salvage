@@ -423,11 +423,11 @@ namespace FactorySalvage.Editor
             var baseTarget = Object.FindAnyObjectByType<FactorySalvage.Gameplay.Health>();
             if (baseTarget != null) SetField(waveMgr, "_baseTarget", baseTarget.transform);
 
-            var enemySet = AssetDatabase.LoadAssetAtPath<TransformRuntimeSet>("Assets/_Data/Variables/EnemySet.asset");
+            var enemySet = AssetDatabase.LoadAssetAtPath<FactorySalvage.Core.TransformRuntimeSet>("Assets/_Data/Variables/EnemySet.asset");
             if (enemySet == null)
             {
                 GameSetupWizard_EnsureDirectory("Assets/_Data/Variables");
-                enemySet = ScriptableObject.CreateInstance<TransformRuntimeSet>();
+                enemySet = ScriptableObject.CreateInstance<FactorySalvage.Core.TransformRuntimeSet>();
                 AssetDatabase.CreateAsset(enemySet, "Assets/_Data/Variables/EnemySet.asset");
             }
             SetField(waveMgr, "_enemySet", enemySet);
