@@ -98,6 +98,13 @@ namespace FactorySalvage.Gameplay
                 buildingGo.AddComponent<CraftingBuilding>();
             }
 
+            // Defense buildings get a tower component
+            if (definition.Category == FactorySalvage.Data.BuildingCategory.Defense)
+            {
+                var tower = buildingGo.AddComponent<DefenseTower>();
+                tower.SetStats(10f, 1f, 8f);
+            }
+
             // Place in slot
             buildingBase.Place(slot);
 

@@ -293,6 +293,12 @@ namespace FactorySalvage.Editor
                 new FactorySalvage.Data.ResourceCost[] { new() { Resource = wood, Amount = 10 }, new() { Resource = iron, Amount = 5 } },
                 null, 0f, furnaceRecipe);
 
+            // Defense: Arrow Tower
+            CreateBuildingSO("Arrow Tower", "arrow_tower", new Color(0.2f, 0.8f, 0.2f),
+                FactorySalvage.Data.BuildingCategory.Defense,
+                new FactorySalvage.Data.ResourceCost[] { new() { Resource = wood, Amount = 8 } },
+                null, 0f, null);
+
             AssetDatabase.SaveAssets();
             AssetDatabase.Refresh();
             Debug.Log("[Setup] Building SOs created");
@@ -394,7 +400,8 @@ namespace FactorySalvage.Editor
             var lumberMill = AssetDatabase.LoadAssetAtPath<FactorySalvage.Data.BuildingDefinition>("Assets/_Data/Buildings/lumber_mill.asset");
             var ironMine = AssetDatabase.LoadAssetAtPath<FactorySalvage.Data.BuildingDefinition>("Assets/_Data/Buildings/iron_mine.asset");
             var furnace = AssetDatabase.LoadAssetAtPath<FactorySalvage.Data.BuildingDefinition>("Assets/_Data/Buildings/furnace.asset");
-            SetField(buildSys, "_availableBuildings", new FactorySalvage.Data.BuildingDefinition[] { lumberMill, ironMine, furnace });
+            var arrowTower = AssetDatabase.LoadAssetAtPath<FactorySalvage.Data.BuildingDefinition>("Assets/_Data/Buildings/arrow_tower.asset");
+            SetField(buildSys, "_availableBuildings", new FactorySalvage.Data.BuildingDefinition[] { lumberMill, ironMine, furnace, arrowTower });
 
             // HUD
             var canvas = Object.FindAnyObjectByType<Canvas>();
