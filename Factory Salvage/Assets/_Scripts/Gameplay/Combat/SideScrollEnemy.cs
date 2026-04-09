@@ -87,7 +87,7 @@ namespace FactorySalvage.Gameplay
             }
 
             // Register in set
-            if (_enemySet != null && !_enemySet.Items.Contains(transform))
+            if (_enemySet != null)
             {
                 _enemySet.Add(transform);
             }
