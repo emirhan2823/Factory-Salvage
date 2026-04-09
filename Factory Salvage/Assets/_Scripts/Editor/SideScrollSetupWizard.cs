@@ -140,7 +140,7 @@ namespace FactorySalvage.Editor
             baseGo.transform.position = new Vector3(12f, 1.5f, 0f);
 
             var sr = baseGo.AddComponent<SpriteRenderer>();
-            sr.sprite = CreateColorSprite("BaseSprite2", new Color(0f, 0.7f, 1f), 48, 64);
+            sr.sprite = FactorySalvage.Core.SpriteFactory.CreateBase(1f);
             sr.sortingOrder = 5;
 
             var health = baseGo.AddComponent<FactorySalvage.Gameplay.Health>();
@@ -149,7 +149,11 @@ namespace FactorySalvage.Editor
             var col = baseGo.AddComponent<BoxCollider2D>();
             col.size = new Vector2(1.5f, 2f);
 
-            Debug.Log("[Setup] Player base created at x=12");
+            // Environment renderer (sky, clouds, mountains, grass)
+            var envGo = new GameObject("Environment");
+            envGo.AddComponent<EnvironmentRenderer>();
+
+            Debug.Log("[Setup] Player base + environment created");
         }
 
         private static void CreateCanvas()
