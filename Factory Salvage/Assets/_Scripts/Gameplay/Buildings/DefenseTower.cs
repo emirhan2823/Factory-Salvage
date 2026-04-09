@@ -120,14 +120,8 @@ namespace FactorySalvage.Gameplay
             projGo.transform.position = transform.position + Vector3.up * 0.5f;
 
             var sr = projGo.AddComponent<SpriteRenderer>();
-            sr.color = Color.yellow;
             sr.sortingOrder = 12;
-            var tex = new Texture2D(8, 8);
-            var pixels = new Color[64];
-            for (int i = 0; i < 64; i++) pixels[i] = Color.yellow;
-            tex.SetPixels(pixels);
-            tex.Apply();
-            sr.sprite = Sprite.Create(tex, new Rect(0, 0, 8, 8), new Vector2(0.5f, 0.5f), 8f);
+            sr.sprite = Core.SpriteFactory.CreateProjectile(Core.ColorPalette.ProjectileYellow);
 
             var col = projGo.AddComponent<CircleCollider2D>();
             col.radius = 0.15f;

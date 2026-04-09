@@ -75,10 +75,9 @@ namespace FactorySalvage.Gameplay
             // Create building
             var buildingGo = new GameObject(definition.BuildingName);
 
-            // Sprite
+            // Sprite (SpriteFactory generates shaped sprites)
             var sr = buildingGo.AddComponent<SpriteRenderer>();
-            sr.color = definition.Color;
-            sr.sprite = CreatePlaceholderSprite(definition.Color);
+            sr.sprite = Core.SpriteFactory.CreateBuilding(definition.Category, definition.Color, 1);
             sr.sortingOrder = 5;
 
             // Building base
@@ -196,28 +195,6 @@ namespace FactorySalvage.Gameplay
                     }
                 }
             }
-        }
-
-        private Sprite CreatePlaceholderSprite(Color color)
-        {
-            var tex = new Texture2D(32, 48);
-            var pixels = new Color[32 * 48];
-            for (int i = 0; i < pixels.Length; i++) pixels[i] = color;
-            // Border
-            for (int x = 0; x < 32; x++)
-            {
-                pixels[x] = Color.black;
-                pixels[x + 47 * 32] = Color.black;
-            }
-            for (int y = 0; y < 48; y++)
-            {
-                pixels[y * 32] = Color.black;
-                pixels[y * 32 + 31] = Color.black;
-            }
-            tex.SetPixels(pixels);
-            tex.filterMode = FilterMode.Point;
-            tex.Apply();
-            return Sprite.Create(tex, new Rect(0, 0, 32, 48), new Vector2(0.5f, 0.25f), 32f);
         }
 
         private void SetField(object target, string name, object value)

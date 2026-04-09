@@ -131,17 +131,12 @@ namespace FactorySalvage.Gameplay
             var enemyGo = new GameObject($"Enemy_{enemyDef.EnemyName}");
             enemyGo.transform.position = spawnPos;
 
-            // Sprite
+            // Sprite (SpriteFactory generates creature shapes)
             var sr = enemyGo.AddComponent<SpriteRenderer>();
-            sr.color = Color.red;
             sr.sortingOrder = 8;
-            // Create simple sprite
-            var tex = new Texture2D(28, 28);
-            var pixels = new Color[28 * 28];
-            for (int i = 0; i < pixels.Length; i++) pixels[i] = Color.red;
-            tex.SetPixels(pixels);
-            tex.Apply();
-            sr.sprite = Sprite.Create(tex, new Rect(0, 0, 28, 28), new Vector2(0.5f, 0.25f), 28f);
+            bool isFast = _fastEnemy != null && enemyDef == _fastEnemy;
+            var enemyColor = isFast ? Core.ColorPalette.EnemyFast : Core.ColorPalette.EnemyBase;
+            sr.sprite = Core.SpriteFactory.CreateEnemy(isFast, enemyColor);
 
             // Collider
             var col = enemyGo.AddComponent<CircleCollider2D>();
