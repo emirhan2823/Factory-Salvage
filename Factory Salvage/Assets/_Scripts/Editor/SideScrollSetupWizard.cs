@@ -59,7 +59,7 @@ namespace FactorySalvage.Editor
             CreateZoneBackground("VillageBG", new Color(0.2f, 0.2f, 0.35f, 0.3f), 0f, 12f);
 
             // Defense zone background (right)
-            CreateZoneBackground("DefenseBG", new Color(0.35f, 0.15f, 0.15f, 0.3f), 12f, 8f);
+            CreateZoneBackground("DefenseBG", new Color(0.35f, 0.15f, 0.15f, 0.3f), 12f, 18f);
 
             Debug.Log("[Setup] Ground and zone backgrounds created");
         }
@@ -103,7 +103,7 @@ namespace FactorySalvage.Editor
             var dz = defenseZone.AddComponent<WorldZone>();
             SetField(dz, "_zoneType", ZoneType.Defense);
             SetField(dz, "_minX", 12f);
-            SetField(dz, "_maxX", 20f);
+            SetField(dz, "_maxX", 30f);
             SetField(dz, "_gizmoColor", Color.red);
 
             Debug.Log("[Setup] 3 zones created: Resource(-10~0), Village(0~12), Defense(12~20)");
@@ -121,8 +121,8 @@ namespace FactorySalvage.Editor
             // Add side-scroll camera
             var ssCam = cam.gameObject.AddComponent<SideScrollCamera>();
             SetField(ssCam, "_minX", -10f);
-            SetField(ssCam, "_maxX", 20f);
-            SetField(ssCam, "_fixedY", 3f);
+            SetField(ssCam, "_maxX", 30f);
+            SetField(ssCam, "_defaultY", 3f);
             SetField(ssCam, "_minZoom", 4f);
             SetField(ssCam, "_maxZoom", 10f);
 
@@ -281,13 +281,13 @@ namespace FactorySalvage.Editor
                 villageSlots[i] = slot;
             }
 
-            // Defense slots (4 slots in defense zone, x: 13 to 19)
-            var defenseSlots = new BuildingSlot[4];
-            for (int i = 0; i < 4; i++)
+            // Defense slots (5 slots in defense zone, x: 14 to 24)
+            var defenseSlots = new BuildingSlot[5];
+            for (int i = 0; i < 5; i++)
             {
                 var slotGo = new GameObject($"DefenseSlot_{i}");
                 slotGo.transform.SetParent(slotsParent.transform);
-                slotGo.transform.position = new Vector3(13f + i * 1.8f, 1f, 0f);
+                slotGo.transform.position = new Vector3(14f + i * 2.5f, 1f, 0f);
 
                 var sr = slotGo.AddComponent<SpriteRenderer>();
                 sr.sprite = CreateColorSprite($"DefenseSlotIndicator", new Color(1f, 0.3f, 0.3f, 0.15f), 32, 48);

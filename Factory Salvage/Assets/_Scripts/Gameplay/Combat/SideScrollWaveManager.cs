@@ -14,7 +14,7 @@ namespace FactorySalvage.Gameplay
 
         [Header("Config")]
         [SerializeField] private float _timeBetweenWaves = 10f;
-        [SerializeField] private float _spawnXOffset = 22f;
+        [SerializeField] private float _spawnXOffset = 28f;
         [SerializeField] private float _spawnY = 1f;
 
         [Header("Enemy Definitions")]
