@@ -148,30 +148,41 @@ namespace FactorySalvage.Gameplay
             var slot = hit.GetComponent<BuildingSlot>();
             if (slot != null && !slot.IsOccupied)
             {
-                // Auto-build first available building for testing
-                // TODO: Replace with proper build menu UI
-                if (_availableBuildings != null && _availableBuildings.Length > 0)
+                if (_availableBuildings == null || _availableBuildings.Length == 0) return;
+
+                // Defense slots get tower buildings, village slots get resource/crafting
+                bool isDefenseSlot = slot.Zone == ZoneType.Defense;
+
+                foreach (var building in _availableBuildings)
                 {
-                    // Cycle through buildings — pick first one we can afford
-                    foreach (var building in _availableBuildings)
+                    if (building == null) continue;
+
+                    // Match building category to slot zone
+                    bool isDefenseBuilding = building.Category == Data.BuildingCategory.Defense;
+                    if (isDefenseSlot != isDefenseBuilding) continue;
+
+                    if (_inventory == null || _inventory.HasEnoughResources(building.BuildCost))
                     {
-                        if (_inventory == null || _inventory.HasEnoughResources(building.BuildCost))
-                        {
-                            TryBuild(building, slot);
-                            return;
-                        }
+                        TryBuild(building, slot);
+                        return;
                     }
-                    Debug.Log("[Build] Not enough resources for any building!");
                 }
+                Debug.Log("[Build] Not enough resources!");
+                return;
             }
 
             // Check if tapped on a building (for info/upgrade)
             var buildingBase = hit.GetComponentInParent<BuildingBase>();
             if (buildingBase != null)
             {
-                if (buildingBase.LevelUp(_inventory))
+                if (buildingBase.CanLevelUp(_inventory))
                 {
-                    Debug.Log($"[Build] {buildingBase.Definition.BuildingName} upgraded to level {buildingBase.Level}!");
+                    buildingBase.LevelUp(_inventory);
+                    Debug.Log($"[Upgrade] {buildingBase.Definition.BuildingName} → Level {buildingBase.Level}!");
+                }
+                else
+                {
+                    Debug.Log($"[Info] {buildingBase.Definition.BuildingName} Lv.{buildingBase.Level} — not enough resources to upgrade");
                 }
             }
         }

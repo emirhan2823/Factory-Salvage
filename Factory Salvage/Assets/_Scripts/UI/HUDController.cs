@@ -47,6 +47,16 @@ namespace FactorySalvage.UI
             var resources = _inventory.GetAllResources();
 
             _sb.Clear();
+
+            // Wave info
+            if (Core.ServiceLocator.TryGet<SideScrollWaveManager>(out var waveMgr))
+            {
+                _sb.Append("Wave ").Append(waveMgr.CurrentWave);
+                if (waveMgr.WaveInProgress) _sb.Append(" [ACTIVE]");
+                _sb.Append("  |  ");
+            }
+
+            // Resources
             if (resources.Count > 0)
             {
                 foreach (var kvp in resources)
@@ -56,7 +66,7 @@ namespace FactorySalvage.UI
             }
             else
             {
-                _sb.Append("Build a Lumber Mill to start!");
+                _sb.Append("Tap slots to build!");
             }
 
             _resourceText.SetText(_sb);
