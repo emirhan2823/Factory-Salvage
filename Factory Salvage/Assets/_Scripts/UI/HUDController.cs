@@ -6,7 +6,7 @@ namespace FactorySalvage.UI
 {
     /// <summary>
     /// Simple HUD that polls inventory every frame.
-    /// No event wiring needed — just finds Player and reads inventory.
+    /// Finds ANY Inventory in scene (works with both player-based and standalone).
     /// </summary>
     public class HUDController : MonoBehaviour
     {
@@ -25,13 +25,13 @@ namespace FactorySalvage.UI
         {
             if (_inventory == null)
             {
-                FindInventory();
+                _inventory = FindAnyObjectByType<Inventory>();
                 return;
             }
 
             if (_resourceText == null)
             {
-                _resourceText = GetComponentInChildren<TextMeshProUGUI>();
+                _resourceText = FindAnyObjectByType<TextMeshProUGUI>();
                 return;
             }
 
@@ -41,15 +41,6 @@ namespace FactorySalvage.UI
         #endregion
 
         #region Private Methods
-
-        private void FindInventory()
-        {
-            var player = FindAnyObjectByType<PlayerController>();
-            if (player != null)
-            {
-                _inventory = player.GetComponent<Inventory>();
-            }
-        }
 
         private void UpdateDisplay()
         {
@@ -65,7 +56,7 @@ namespace FactorySalvage.UI
             }
             else
             {
-                _sb.Append("Tap scrap piles to collect!");
+                _sb.Append("Build a Lumber Mill to start!");
             }
 
             _resourceText.SetText(_sb);
