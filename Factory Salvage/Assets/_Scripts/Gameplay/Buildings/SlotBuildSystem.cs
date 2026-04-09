@@ -75,9 +75,11 @@ namespace FactorySalvage.Gameplay
             // Create building
             var buildingGo = new GameObject(definition.BuildingName);
 
-            // Sprite (SpriteFactory generates shaped sprites)
+            // Sprite: AI sprite if available, SpriteFactory fallback
             var sr = buildingGo.AddComponent<SpriteRenderer>();
-            sr.sprite = Core.SpriteFactory.CreateBuilding(definition.Category, definition.Color, 1);
+            sr.sprite = definition.BuildingSprite != null
+                ? definition.BuildingSprite
+                : Core.SpriteFactory.CreateBuilding(definition.Category, definition.Color, 1);
             sr.sortingOrder = 5;
 
             // Building base

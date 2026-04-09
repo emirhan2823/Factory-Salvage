@@ -22,6 +22,7 @@ namespace FactorySalvage.Data
         [SerializeField] private string _buildingName;
         [SerializeField] private string _buildingId;
         [SerializeField] private Sprite _icon;
+        [SerializeField] private Sprite _buildingSprite;
         [SerializeField] private Color _color = Color.white;
         [SerializeField] private BuildingCategory _category;
 
@@ -46,6 +47,7 @@ namespace FactorySalvage.Data
         public string BuildingName => _buildingName;
         public string BuildingId => _buildingId;
         public Sprite Icon => _icon;
+        public Sprite BuildingSprite => _buildingSprite;
         public Color Color => _color;
         public BuildingCategory Category => _category;
         public ResourceCost[] BuildCost => _buildCost;
