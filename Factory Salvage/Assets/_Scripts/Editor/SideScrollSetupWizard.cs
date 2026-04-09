@@ -26,6 +26,7 @@ namespace FactorySalvage.Editor
             CreateCanvas();
             CreateBuildingSlots();
             CreateBuildingSOs();
+            CreateUnderground();
             CreateManagers();
 
             // Save scene
@@ -503,7 +504,163 @@ namespace FactorySalvage.Editor
                 }
             }
 
-            Debug.Log("[Setup] Managers created (Inventory, Audio, Save, SlotManager, BuildSystem, WaveManager)");
+            // UndergroundManager
+            var ugMgrGo = new GameObject("UndergroundManager");
+            ugMgrGo.transform.SetParent(managersGo.transform);
+            var ugMgr = ugMgrGo.AddComponent<UndergroundManager>();
+            if (_tempLayers != null) ugMgr.SetLayers(_tempLayers);
+
+            Debug.Log("[Setup] Managers created (Inventory, Audio, Save, SlotManager, BuildSystem, WaveManager, Underground)");
+        }
+
+        private static UndergroundLayer[] _tempLayers;
+
+        private static void CreateUnderground()
+        {
+            var undergroundParent = new GameObject("Underground");
+
+            // Create 3 layers
+            var layerConfigs = new[]
+            {
+                ("Layer 1 - Shallow Mine", -5f, new Color(0.35f, 0.25f, 0.15f), 6, true),
+                ("Layer 2 - Deep Mine", -12f, new Color(0.25f, 0.2f, 0.15f), 6, false),
+                ("Layer 3 - Lava Core", -20f, new Color(0.4f, 0.15f, 0.1f), 4, false)
+            };
+
+            var layers = new UndergroundLayer[layerConfigs.Length];
+
+            for (int l = 0; l < layerConfigs.Length; l++)
+            {
+                var (name, yPos, bgColor, slotCount, unlocked) = layerConfigs[l];
+
+                var layerGo = new GameObject(name);
+                layerGo.transform.SetParent(undergroundParent.transform);
+                layerGo.transform.position = new Vector3(5f, yPos, 0f);
+
+                // Background
+                var bgGo = new GameObject("Background");
+                bgGo.transform.SetParent(layerGo.transform);
+                bgGo.transform.position = new Vector3(5f, yPos, 0f);
+                var bgSr = bgGo.AddComponent<SpriteRenderer>();
+                bgSr.sprite = CreateColorSprite($"Layer{l + 1}BG", bgColor, 32, 32);
+                bgSr.drawMode = SpriteDrawMode.Tiled;
+                bgSr.size = new Vector2(40f, 6f);
+                bgSr.sortingOrder = -3;
+
+                // Layer divider line
+                var lineGo = new GameObject("Divider");
+                lineGo.transform.SetParent(layerGo.transform);
+                lineGo.transform.position = new Vector3(5f, yPos + 3f, 0f);
+                var lineSr = lineGo.AddComponent<SpriteRenderer>();
+                lineSr.sprite = CreateColorSprite("DividerLine", new Color(0.5f, 0.4f, 0.3f), 32, 4);
+                lineSr.drawMode = SpriteDrawMode.Tiled;
+                lineSr.size = new Vector2(40f, 0.15f);
+                lineSr.sortingOrder = -2;
+
+                // Layer label
+                var labelGo = new GameObject("Label");
+                labelGo.transform.SetParent(layerGo.transform);
+                labelGo.transform.position = new Vector3(-5f, yPos + 2f, 0f);
+                var labelTmp = labelGo.AddComponent<TMPro.TextMeshPro>();
+                labelTmp.text = name;
+                labelTmp.fontSize = 4;
+                labelTmp.color = new Color(0.8f, 0.7f, 0.5f);
+                labelTmp.sortingOrder = 10;
+
+                // Slots
+                var slots = new BuildingSlot[slotCount];
+                for (int i = 0; i < slotCount; i++)
+                {
+                    var slotGo = new GameObject($"UndergroundSlot_{l}_{i}");
+                    slotGo.transform.SetParent(layerGo.transform);
+                    slotGo.transform.position = new Vector3(1f + i * 1.5f, yPos, 0f);
+
+                    var sr = slotGo.AddComponent<SpriteRenderer>();
+                    sr.sprite = CreateColorSprite("SlotIndicator", new Color(1f, 1f, 1f, 0.15f), 32, 48);
+                    sr.sortingOrder = 2;
+
+                    var col = slotGo.AddComponent<BoxCollider2D>();
+                    col.size = new Vector2(1f, 1.5f);
+
+                    var slot = slotGo.AddComponent<BuildingSlot>();
+                    slot.Initialize(ZoneType.Resource, i);
+                    SetField(slot, "_indicator", sr);
+
+                    // Disable collider if locked
+                    if (!unlocked) col.enabled = false;
+
+                    slots[i] = slot;
+                }
+
+                // Lock overlay for locked layers
+                GameObject lockOverlay = null;
+                if (!unlocked)
+                {
+                    lockOverlay = new GameObject("LockOverlay");
+                    lockOverlay.transform.SetParent(layerGo.transform);
+                    lockOverlay.transform.position = new Vector3(5f, yPos, 0f);
+                    var lockSr = lockOverlay.AddComponent<SpriteRenderer>();
+                    lockSr.sprite = CreateColorSprite("LockOverlaySprite", new Color(0f, 0f, 0f, 0.5f), 32, 32);
+                    lockSr.drawMode = SpriteDrawMode.Tiled;
+                    lockSr.size = new Vector2(40f, 6f);
+                    lockSr.sortingOrder = 15;
+
+                    // Lock text
+                    var lockTextGo = new GameObject("LockText");
+                    lockTextGo.transform.SetParent(lockOverlay.transform);
+                    lockTextGo.transform.position = new Vector3(5f, yPos, 0f);
+                    var lockTmp = lockTextGo.AddComponent<TMPro.TextMeshPro>();
+                    lockTmp.text = "LOCKED - Tap to unlock";
+                    lockTmp.fontSize = 5;
+                    lockTmp.alignment = TMPro.TextAlignmentOptions.Center;
+                    lockTmp.color = Color.white;
+                    lockTmp.sortingOrder = 16;
+                }
+
+                // Underground layer component
+                var layer = layerGo.AddComponent<UndergroundLayer>();
+                layer.SetSlots(slots);
+                SetField(layer, "_background", bgSr);
+                SetField(layer, "_lockOverlay", lockOverlay);
+
+                // Create LayerDefinition SO
+                var layerDefPath = $"Assets/_Data/Layers/Layer{l + 1}.asset";
+                GameSetupWizard_EnsureDirectory("Assets/_Data/Layers");
+                var existingDef = AssetDatabase.LoadAssetAtPath<FactorySalvage.Data.LayerDefinition>(layerDefPath);
+                if (existingDef == null)
+                {
+                    var layerDef = ScriptableObject.CreateInstance<FactorySalvage.Data.LayerDefinition>();
+                    SetField(layerDef, "_layerName", name);
+                    SetField(layerDef, "_depth", l + 1);
+                    SetField(layerDef, "_worldY", yPos);
+                    SetField(layerDef, "_slotCount", slotCount);
+                    SetField(layerDef, "_backgroundColor", bgColor);
+                    SetField(layerDef, "_unlockedByDefault", unlocked);
+
+                    // Unlock costs for locked layers
+                    if (!unlocked)
+                    {
+                        var wood = AssetDatabase.LoadAssetAtPath<FactorySalvage.Data.ResourceDefinition>("Assets/_Data/Resources/Wood.asset");
+                        var iron = AssetDatabase.LoadAssetAtPath<FactorySalvage.Data.ResourceDefinition>("Assets/_Data/Resources/Iron.asset");
+                        int costMult = l + 1;
+                        SetField(layerDef, "_unlockCost", new FactorySalvage.Data.ResourceCost[]
+                        {
+                            new() { Resource = wood, Amount = 20 * costMult },
+                            new() { Resource = iron, Amount = 10 * costMult }
+                        });
+                    }
+
+                    AssetDatabase.CreateAsset(layerDef, layerDefPath);
+                    existingDef = layerDef;
+                }
+
+                layer.Initialize(existingDef, unlocked);
+                layers[l] = layer;
+            }
+
+            _tempLayers = layers;
+            AssetDatabase.SaveAssets();
+            Debug.Log("[Setup] 3 underground layers created");
         }
 
         private static void CreateEnemySOs()
