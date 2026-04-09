@@ -101,8 +101,13 @@ namespace FactorySalvage.Gameplay
             // Defense buildings get a tower component
             if (definition.Category == FactorySalvage.Data.BuildingCategory.Defense)
             {
-                var tower = buildingGo.AddComponent<DefenseTower>();
-                tower.SetStats(10f, 1f, 8f);
+                var towerType = System.Type.GetType("FactorySalvage.Gameplay.DefenseTower, FactorySalvage");
+                if (towerType != null)
+                {
+                    var tower = (Component)buildingGo.AddComponent(towerType);
+                    var setStats = towerType.GetMethod("SetStats");
+                    setStats?.Invoke(tower, new object[] { 10f, 1f, 8f });
+                }
             }
 
             // Place in slot
