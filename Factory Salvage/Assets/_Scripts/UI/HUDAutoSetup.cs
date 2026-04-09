@@ -1,87 +1,58 @@
 using UnityEngine;
 using TMPro;
+using FactorySalvage.Gameplay;
 
 namespace FactorySalvage.UI
 {
     /// <summary>
-    /// Auto-attaches HUDController at runtime if missing.
-    /// Put this on the Canvas or any always-active GameObject.
-    /// Runs once on Start, then disables itself.
+    /// Ensures HUDController exists and is wired at runtime.
+    /// Works by finding Canvas → ResourceText, then adding HUDController.
     /// </summary>
     public class HUDAutoSetup : MonoBehaviour
     {
-        #region Unity Callbacks
-
         private void Start()
         {
-            EnsureHUDController();
-        }
-
-        #endregion
-
-        #region Private Methods
-
-        private void EnsureHUDController()
-        {
-            // Already exists?
             var existing = FindAnyObjectByType<HUDController>();
             if (existing != null) return;
 
-            // Find Canvas → HUD panel
+            // Find ResourceText in Canvas
             var canvas = FindAnyObjectByType<Canvas>();
             if (canvas == null) return;
 
-            var hudTransform = canvas.transform.Find("HUD");
-            if (hudTransform == null)
+            TextMeshProUGUI targetText = null;
+
+            // Search all TMP texts in canvas for "ResourceText" named object
+            var allTexts = canvas.GetComponentsInChildren<TextMeshProUGUI>(true);
+            foreach (var t in allTexts)
             {
-                // Create HUD panel
-                var hudGo = new GameObject("HUD", typeof(RectTransform));
-                hudGo.transform.SetParent(canvas.transform, false);
-                var rect = hudGo.GetComponent<RectTransform>();
-                rect.anchorMin = Vector2.zero;
-                rect.anchorMax = Vector2.one;
-                rect.sizeDelta = Vector2.zero;
-                hudTransform = hudGo.transform;
+                if (t.gameObject.name == "ResourceText")
+                {
+                    targetText = t;
+                    break;
+                }
             }
 
-            // Add HUDController
-            var controller = hudTransform.gameObject.AddComponent<HUDController>();
-
-            // Find or create ResourceText
-            var textTransform = hudTransform.Find("ResourceText");
-            TextMeshProUGUI tmp;
-
-            if (textTransform != null)
+            // Fallback: use first TMP text found
+            if (targetText == null && allTexts.Length > 0)
             {
-                tmp = textTransform.GetComponent<TextMeshProUGUI>();
-            }
-            else
-            {
-                var textGo = new GameObject("ResourceText", typeof(RectTransform));
-                textGo.transform.SetParent(hudTransform, false);
-                var textRect = textGo.GetComponent<RectTransform>();
-                textRect.anchorMin = new Vector2(0.5f, 1f);
-                textRect.anchorMax = new Vector2(0.5f, 1f);
-                textRect.anchoredPosition = new Vector2(0f, -40f);
-                textRect.sizeDelta = new Vector2(800f, 50f);
-
-                tmp = textGo.AddComponent<TextMeshProUGUI>();
-                tmp.fontSize = 22;
-                tmp.alignment = TextAlignmentOptions.Center;
-                tmp.color = Color.white;
+                targetText = allTexts[0];
             }
 
-            // Wire the reference using reflection (since field is private)
+            if (targetText == null) return;
+
+            // Add HUDController to the text's parent (or canvas)
+            var hudGo = targetText.transform.parent != null ? targetText.transform.parent.gameObject : canvas.gameObject;
+            var hud = hudGo.AddComponent<HUDController>();
+
+            // Wire reference
             var field = typeof(HUDController).GetField("_resourceText",
                 System.Reflection.BindingFlags.NonPublic | System.Reflection.BindingFlags.Instance);
             if (field != null)
             {
-                field.SetValue(controller, tmp);
+                field.SetValue(hud, targetText);
             }
 
-            Debug.Log("[HUDAutoSetup] HUDController created and wired at runtime!");
+            Debug.Log("[HUDAutoSetup] HUDController wired to ResourceText");
         }
-
-        #endregion
     }
 }
