@@ -140,7 +140,7 @@ namespace FactorySalvage.Editor
             sr.sprite = CreateColorSprite("BaseSprite2", new Color(0f, 0.7f, 1f), 48, 64);
             sr.sortingOrder = 5;
 
-            var health = baseGo.AddComponent<Combat.Health>();
+            var health = baseGo.AddComponent<FactorySalvage.Gameplay.Health>();
             SetField(health, "_maxHealth", 100f);
 
             var col = baseGo.AddComponent<BoxCollider2D>();
@@ -202,12 +202,12 @@ namespace FactorySalvage.Editor
             // Inventory (standalone, no player needed for idle game)
             var invGo = new GameObject("GlobalInventory");
             invGo.transform.SetParent(managersGo.transform);
-            invGo.AddComponent<Resources.Inventory>();
+            invGo.AddComponent<FactorySalvage.Gameplay.Inventory>();
 
             // Audio
             var audioGo = new GameObject("AudioManager");
             audioGo.transform.SetParent(managersGo.transform);
-            var am = audioGo.AddComponent<Audio.AudioManager>();
+            var am = audioGo.AddComponent<FactorySalvage.Audio.AudioManager>();
             var musicSrc = audioGo.AddComponent<AudioSource>();
             musicSrc.loop = true;
             musicSrc.playOnAwake = false;
@@ -219,7 +219,7 @@ namespace FactorySalvage.Editor
             // Save
             var saveGo = new GameObject("SaveManager");
             saveGo.transform.SetParent(managersGo.transform);
-            saveGo.AddComponent<Data.SaveManager>();
+            saveGo.AddComponent<FactorySalvage.Data.SaveManager>();
 
             Debug.Log("[Setup] Managers created (Inventory, Audio, Save)");
         }
