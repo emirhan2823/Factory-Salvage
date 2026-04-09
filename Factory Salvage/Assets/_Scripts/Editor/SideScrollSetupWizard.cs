@@ -24,6 +24,8 @@ namespace FactorySalvage.Editor
             SetupCamera();
             CreateBase();
             CreateCanvas();
+            CreateBuildingSlots();
+            CreateBuildingSOs();
             CreateManagers();
 
             // Save scene
@@ -195,6 +197,160 @@ namespace FactorySalvage.Editor
             Debug.Log("[Setup] Canvas and UI created");
         }
 
+        private static void CreateBuildingSlots()
+        {
+            var slotsParent = new GameObject("BuildingSlots");
+
+            // Village slots (8 slots in the village zone, x: 1 to 11)
+            var villageSlots = new BuildingSlot[8];
+            for (int i = 0; i < 8; i++)
+            {
+                var slotGo = new GameObject($"VillageSlot_{i}");
+                slotGo.transform.SetParent(slotsParent.transform);
+                slotGo.transform.position = new Vector3(1.5f + i * 1.3f, 1f, 0f);
+
+                // Visual indicator
+                var sr = slotGo.AddComponent<SpriteRenderer>();
+                sr.sprite = CreateColorSprite($"SlotIndicator", new Color(1f, 1f, 1f, 0.15f), 32, 48);
+                sr.sortingOrder = 2;
+
+                // Collider for tap detection
+                var col = slotGo.AddComponent<BoxCollider2D>();
+                col.size = new Vector2(1f, 1.5f);
+
+                var slot = slotGo.AddComponent<BuildingSlot>();
+                slot.Initialize(ZoneType.Village, i);
+                SetField(slot, "_indicator", sr);
+
+                villageSlots[i] = slot;
+            }
+
+            // Defense slots (4 slots in defense zone, x: 13 to 19)
+            var defenseSlots = new BuildingSlot[4];
+            for (int i = 0; i < 4; i++)
+            {
+                var slotGo = new GameObject($"DefenseSlot_{i}");
+                slotGo.transform.SetParent(slotsParent.transform);
+                slotGo.transform.position = new Vector3(13f + i * 1.8f, 1f, 0f);
+
+                var sr = slotGo.AddComponent<SpriteRenderer>();
+                sr.sprite = CreateColorSprite($"DefenseSlotIndicator", new Color(1f, 0.3f, 0.3f, 0.15f), 32, 48);
+                sr.sortingOrder = 2;
+
+                var col = slotGo.AddComponent<BoxCollider2D>();
+                col.size = new Vector2(1f, 1.5f);
+
+                var slot = slotGo.AddComponent<BuildingSlot>();
+                slot.Initialize(ZoneType.Defense, i);
+                SetField(slot, "_indicator", sr);
+
+                defenseSlots[i] = slot;
+            }
+
+            // Register with SlotManager (created in CreateManagers)
+            // Store references temporarily
+            _tempVillageSlots = villageSlots;
+            _tempDefenseSlots = defenseSlots;
+
+            Debug.Log($"[Setup] Created {villageSlots.Length} village slots + {defenseSlots.Length} defense slots");
+        }
+
+        private static BuildingSlot[] _tempVillageSlots;
+        private static BuildingSlot[] _tempDefenseSlots;
+
+        private static void CreateBuildingSOs()
+        {
+            // Resource definitions (reuse existing or create new)
+            CreateResourceSO("Wood", "wood", new Color(0.6f, 0.4f, 0.2f));
+            CreateResourceSO("Iron", "iron", new Color(0.7f, 0.7f, 0.7f));
+            CreateResourceSO("Steel", "steel", new Color(0.4f, 0.5f, 0.7f));
+            CreateResourceSO("Gold", "gold", new Color(1f, 0.85f, 0.2f));
+
+            var wood = AssetDatabase.LoadAssetAtPath<FactorySalvage.Data.ResourceDefinition>("Assets/_Data/Resources/Wood.asset");
+            var iron = AssetDatabase.LoadAssetAtPath<FactorySalvage.Data.ResourceDefinition>("Assets/_Data/Resources/Iron.asset");
+            var steel = AssetDatabase.LoadAssetAtPath<FactorySalvage.Data.ResourceDefinition>("Assets/_Data/Resources/Steel.asset");
+
+            // Building definitions
+            CreateBuildingSO("Lumber Mill", "lumber_mill", new Color(0.5f, 0.35f, 0.15f),
+                FactorySalvage.Data.BuildingCategory.Resource,
+                null, // free to build for testing
+                new FactorySalvage.Data.ResourceOutput[] { new() { Resource = wood, Amount = 1 } },
+                2f, null);
+
+            CreateBuildingSO("Iron Mine", "iron_mine", new Color(0.6f, 0.6f, 0.65f),
+                FactorySalvage.Data.BuildingCategory.Resource,
+                new FactorySalvage.Data.ResourceCost[] { new() { Resource = wood, Amount = 5 } },
+                new FactorySalvage.Data.ResourceOutput[] { new() { Resource = iron, Amount = 1 } },
+                3f, null);
+
+            // Crafting: Furnace (Iron + Wood → Steel)
+            var furnaceRecipe = CreateRecipeSO("SmeltSteel", "Smelt Steel", 5f,
+                new FactorySalvage.Data.ResourceCost[] { new() { Resource = iron, Amount = 1 }, new() { Resource = wood, Amount = 1 } },
+                new FactorySalvage.Data.ResourceOutput[] { new() { Resource = steel, Amount = 1 } });
+
+            CreateBuildingSO("Furnace", "furnace", new Color(0.9f, 0.4f, 0.1f),
+                FactorySalvage.Data.BuildingCategory.Processing,
+                new FactorySalvage.Data.ResourceCost[] { new() { Resource = wood, Amount = 10 }, new() { Resource = iron, Amount = 5 } },
+                null, 0f, furnaceRecipe);
+
+            AssetDatabase.SaveAssets();
+            AssetDatabase.Refresh();
+            Debug.Log("[Setup] Building SOs created");
+        }
+
+        private static void CreateResourceSO(string name, string id, Color color)
+        {
+            var path = $"Assets/_Data/Resources/{name}.asset";
+            if (AssetDatabase.LoadAssetAtPath<FactorySalvage.Data.ResourceDefinition>(path) != null) return;
+
+            GameSetupWizard_EnsureDirectory("Assets/_Data/Resources");
+            var so = ScriptableObject.CreateInstance<FactorySalvage.Data.ResourceDefinition>();
+            SetField(so, "_resourceName", name);
+            SetField(so, "_resourceId", id);
+            SetField(so, "_color", color);
+            AssetDatabase.CreateAsset(so, path);
+        }
+
+        private static void CreateBuildingSO(string name, string id, Color color,
+            FactorySalvage.Data.BuildingCategory category,
+            FactorySalvage.Data.ResourceCost[] cost,
+            FactorySalvage.Data.ResourceOutput[] output,
+            float interval,
+            FactorySalvage.Data.RecipeDefinition recipe)
+        {
+            var path = $"Assets/_Data/Buildings/{id}.asset";
+            if (AssetDatabase.LoadAssetAtPath<FactorySalvage.Data.BuildingDefinition>(path) != null) return;
+
+            GameSetupWizard_EnsureDirectory("Assets/_Data/Buildings");
+            var so = ScriptableObject.CreateInstance<FactorySalvage.Data.BuildingDefinition>();
+            SetField(so, "_buildingName", name);
+            SetField(so, "_buildingId", id);
+            SetField(so, "_color", color);
+            SetField(so, "_category", category);
+            SetField(so, "_buildCost", cost);
+            SetField(so, "_passiveOutput", output);
+            SetField(so, "_productionInterval", interval);
+            SetField(so, "_recipe", recipe);
+            AssetDatabase.CreateAsset(so, path);
+        }
+
+        private static FactorySalvage.Data.RecipeDefinition CreateRecipeSO(string fileName, string name, float time,
+            FactorySalvage.Data.ResourceCost[] inputs, FactorySalvage.Data.ResourceOutput[] outputs)
+        {
+            var path = $"Assets/_Data/Buildings/{fileName}.asset";
+            var existing = AssetDatabase.LoadAssetAtPath<FactorySalvage.Data.RecipeDefinition>(path);
+            if (existing != null) return existing;
+
+            GameSetupWizard_EnsureDirectory("Assets/_Data/Buildings");
+            var so = ScriptableObject.CreateInstance<FactorySalvage.Data.RecipeDefinition>();
+            SetField(so, "_recipeName", name);
+            SetField(so, "_processTime", time);
+            SetField(so, "_inputs", inputs);
+            SetField(so, "_outputs", outputs);
+            AssetDatabase.CreateAsset(so, path);
+            return so;
+        }
+
         private static void CreateManagers()
         {
             var managersGo = new GameObject("Managers");
@@ -221,7 +377,42 @@ namespace FactorySalvage.Editor
             saveGo.transform.SetParent(managersGo.transform);
             saveGo.AddComponent<FactorySalvage.Data.SaveManager>();
 
-            Debug.Log("[Setup] Managers created (Inventory, Audio, Save)");
+            // SlotManager
+            var slotMgrGo = new GameObject("SlotManager");
+            slotMgrGo.transform.SetParent(managersGo.transform);
+            var slotMgr = slotMgrGo.AddComponent<SlotManager>();
+            if (_tempVillageSlots != null) slotMgr.SetSlots(ZoneType.Village, _tempVillageSlots);
+            if (_tempDefenseSlots != null) slotMgr.SetSlots(ZoneType.Defense, _tempDefenseSlots);
+
+            // SlotBuildSystem
+            var buildGo = new GameObject("BuildSystem");
+            buildGo.transform.SetParent(managersGo.transform);
+            var buildSys = buildGo.AddComponent<SlotBuildSystem>();
+            SetField(buildSys, "_inventory", invGo.GetComponent<FactorySalvage.Gameplay.Inventory>());
+
+            // Load building definitions
+            var lumberMill = AssetDatabase.LoadAssetAtPath<FactorySalvage.Data.BuildingDefinition>("Assets/_Data/Buildings/lumber_mill.asset");
+            var ironMine = AssetDatabase.LoadAssetAtPath<FactorySalvage.Data.BuildingDefinition>("Assets/_Data/Buildings/iron_mine.asset");
+            var furnace = AssetDatabase.LoadAssetAtPath<FactorySalvage.Data.BuildingDefinition>("Assets/_Data/Buildings/furnace.asset");
+            SetField(buildSys, "_availableBuildings", new FactorySalvage.Data.BuildingDefinition[] { lumberMill, ironMine, furnace });
+
+            // HUD
+            var canvas = Object.FindAnyObjectByType<Canvas>();
+            if (canvas != null)
+            {
+                var hudGo = canvas.transform.Find("ResourceText");
+                if (hudGo != null)
+                {
+                    var hudParent = hudGo.parent;
+                    if (hudParent.GetComponent<FactorySalvage.UI.HUDController>() == null)
+                    {
+                        var hud = hudParent.gameObject.AddComponent<FactorySalvage.UI.HUDController>();
+                        SetField(hud, "_resourceText", hudGo.GetComponent<TMPro.TextMeshProUGUI>());
+                    }
+                }
+            }
+
+            Debug.Log("[Setup] Managers created (Inventory, Audio, Save, SlotManager, BuildSystem)");
         }
 
         #region Helpers
